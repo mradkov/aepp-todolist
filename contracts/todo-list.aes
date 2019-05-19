@@ -1,0 +1,33 @@
+contract ToDoList =
+  record state = {
+    index: int,
+    tasks : map(int, task)}
+
+  record task = {
+    name: string,
+    completed: bool }
+
+  public stateful function init() =
+    { index = 0,
+      tasks = {}}
+
+  public function get_tasks_count() : int =
+    Map.size(state.tasks)
+
+  public stateful function add_task(task : string) =
+    put(state{tasks[state.index] = { name = task, completed = false } : task })
+    put(state{index = state.index + 1})
+
+  public stateful function complete_task(index : int) : bool =
+    put(state{tasks[index].completed = true})
+    true
+
+  public function get_task_by_index(index: int) : string =
+    switch(Map.lookup(index, state.tasks))
+      None  => "No such task."
+      Some(x) => x.name
+
+  public function is_task_completed(index : int) : bool =
+    switch(Map.lookup(index, state.tasks))
+      None  => false
+      Some(x) => x.completed

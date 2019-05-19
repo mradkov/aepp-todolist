@@ -1,0 +1,25 @@
+{
+  "name": "aepp-todolist",
+  "version": "1.0.0",
+  "description": "This is the default package.json generated for your project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Milen Radkov <milenradkov@me.com> (http://mradkov.com)",
+  "license": "ISC",
+  "dependencies": {
+    "@aeternity/aepp-sdk": "3.0.0",
+    "forgae": "1.4.0",
+    "yarn": "1.16.0"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "aeternity",
+    "aepp",
+    "todo-list"
+  ]
+}
