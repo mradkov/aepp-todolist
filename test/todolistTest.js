@@ -24,7 +24,7 @@ const config = {
     compilerUrl: 'https://compiler.aepps.com'
 }
 
-describe('Example Contract', () => {
+describe('Todolist Contract', () => {
 
     let owner;
     let options = {
@@ -44,8 +44,8 @@ describe('Example Contract', () => {
 
     })
 
-    it('Deploying Example Contract', async () => {
-        let contractSource = utils.readFileRelative('./contracts/ExampleContract.aes', "utf-8"); // Read the aes file
+    it('Deploying Todolist Contract', async () => {
+        let contractSource = utils.readFileRelative('./contracts/todo-list.aes', "utf-8"); // Read the aes file
 
         const compiledContract = await owner.contractCompile(contractSource, { // Compile it
         })
@@ -53,7 +53,7 @@ describe('Example Contract', () => {
         // [] - empty init state object
         const deployPromise = compiledContract.deploy([], options);
 
-        await assert.isFulfilled(deployPromise, 'Could not deploy the ExampleContract Smart Contract'); // Check it is deployed
+        await assert.isFulfilled(deployPromise, 'Could not deploy the Todolist Smart Contract'); // Check it is deployed
     })
 
 })
