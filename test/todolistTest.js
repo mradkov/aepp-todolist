@@ -21,15 +21,12 @@ const config = {
     internalHost: "http://localhost:3001/internal/",
     gas: 200000,
     ttl: 55,
-    compilerUrl: 'https://compiler.aepps.com'
-}
+    compilerUrl: 'http://localhost:3080'
+};
 
 describe('Todolist Contract', () => {
 
-    let owner;
-    let options = {
-        ttl: config.ttl
-    }
+    let owner, contract;
 
     before(async () => {
         const ownerKeyPair = wallets[0];
@@ -42,18 +39,15 @@ describe('Todolist Contract', () => {
             compilerUrl: config.compilerUrl
         });
 
-    })
+    });
 
     it('Deploying Todolist Contract', async () => {
         let contractSource = utils.readFileRelative('./contracts/todo-list.aes', "utf-8"); // Read the aes file
 
-        const compiledContract = await owner.contractCompile(contractSource, { // Compile it
-        })
-        // Deploy it
-        // [] - empty init state object
-        const deployPromise = compiledContract.deploy([], options);
+        contract = await owner.getContractInstance(contractSource);
+        const deploy = await contract.deploy();
 
-        await assert.isFulfilled(deployPromise, 'Could not deploy the Todolist Smart Contract'); // Check it is deployed
+        await assert.equal(deploy.deployInfo.result.returnType, 'ok', 'Could not deploy the Todolist Smart Contract'); // Check it is deployed
     })
 
-})
+});

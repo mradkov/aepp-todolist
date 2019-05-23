@@ -9,8 +9,8 @@
   "author": "Milen Radkov <milenradkov@me.com> (http://mradkov.com)",
   "license": "ISC",
   "dependencies": {
-    "@aeternity/aepp-sdk": "3.0.0",
-    "forgae": "1.4.0",
+    "@aeternity/aepp-sdk": "3.4.0",
+    "forgae": "1.4.2",
     "yarn": "1.16.0"
   },
   "directories": {

@@ -1,33 +1,30 @@
 contract ToDoList =
-  record state = {
-    index: int,
-    tasks : map(int, task)}
+  record state =
+    { seq_id : int
+    , tasks : map(int, task) }
 
-  record task = {
-    name: string,
-    completed: bool }
+  record task =
+    { name : string
+    , completed : bool }
 
   public stateful function init() =
-    { index = 0,
-      tasks = {}}
+    { seq_id = 0, tasks = {}}
 
   public function get_tasks_count() : int =
     Map.size(state.tasks)
 
-  public stateful function add_task(task : string) =
-    put(state{tasks[state.index] = { name = task, completed = false } : task })
-    put(state{index = state.index + 1})
+  public stateful function add_task(task_name : string) =
+    let next_seq_id = state.seq_id + 1
+    let new_task_record = { name = task_name, completed = false }
+    put(state{ tasks[state.seq_id] = new_task_record, seq_id = next_seq_id })
 
-  public stateful function complete_task(index : int) : bool =
-    put(state{tasks[index].completed = true})
-    true
+  public stateful function complete_task(seq_id : int) =
+    put(state{ tasks[seq_id].completed = true })
 
-  public function get_task_by_index(index: int) : string =
-    switch(Map.lookup(index, state.tasks))
-      None  => "No such task."
-      Some(x) => x.name
+  public function get_task_by_seq_id(seq_id: int) : option(task) =
+    Map.lookup(seq_id, state.tasks)
 
-  public function is_task_completed(index : int) : bool =
-    switch(Map.lookup(index, state.tasks))
+  public function is_task_completed(seq_id : int) : bool =
+    switch(get_task_by_seq_id(seq_id))
       None  => false
       Some(x) => x.completed
