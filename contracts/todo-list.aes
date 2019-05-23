@@ -1,7 +1,10 @@
 contract ToDoList =
+
+  type tasks = map(int, task)
+
   record state =
     { seq_id : int
-    , tasks : map(int, task) }
+    , tasks : tasks }
 
   record task =
     { name : string
@@ -10,9 +13,6 @@ contract ToDoList =
   public stateful function init() =
     { seq_id = 0, tasks = {}}
 
-  public function get_tasks_count() : int =
-    Map.size(state.tasks)
-
   public stateful function add_task(task_name : string) =
     let next_seq_id = state.seq_id + 1
     let new_task_record = { name = task_name, completed = false }
@@ -20,6 +20,9 @@ contract ToDoList =
 
   public stateful function complete_task(seq_id : int) =
     put(state{ tasks[seq_id].completed = true })
+
+  public function get_all_tasks() : tasks =
+    state.tasks
 
   public function get_task_by_seq_id(seq_id: int) : option(task) =
     Map.lookup(seq_id, state.tasks)
