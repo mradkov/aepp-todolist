@@ -24,6 +24,10 @@ const config = {
     compilerUrl: 'http://localhost:3080'
 };
 
+const transformTasksList = (list) => list.map(([id, task]) => {
+    return {...{id: id}, ...task};
+});
+
 describe('Todolist Contract', () => {
 
     let owner, contract;
@@ -38,16 +42,33 @@ describe('Todolist Contract', () => {
             networkId: 'ae_devnet',
             compilerUrl: config.compilerUrl
         });
-
     });
 
-    it('Deploying Todolist Contract', async () => {
-        let contractSource = utils.readFileRelative('./contracts/todo-list.aes', "utf-8"); // Read the aes file
+    it('Deploying TodoList Contract', async () => {
+        let contractSource = utils.readFileRelative('./contracts/todo-list.aes', "utf-8");
 
         contract = await owner.getContractInstance(contractSource);
         const deploy = await contract.deploy();
 
-        await assert.equal(deploy.deployInfo.result.returnType, 'ok', 'Could not deploy the Todolist Smart Contract'); // Check it is deployed
-    })
+        await assert.equal(deploy.deployInfo.result.returnType, 'ok', 'Could not deploy the Todolist Smart Contract');
+    });
+
+    it('TodoList Contract Workflow: Add Todo Item', async () => {
+        let call = await contract.call('add_task', ['testing']);
+        await assert.equal(call.result.returnType, 'ok', 'Could not add a task');
+    });
+
+    it('TodoList Contract Workflow: Get All Todo Items', async () => {
+        let call = await contract.call('get_tasks', [], {callStatic: true});
+        let decode = await call.decode().then(transformTasksList);
+        await assert.deepEqual(decode[0], {id: 0, name: 'testing', completed: false}, 'Could not get tasks');
+    });
+
+    it('TodoList Contract Workflow: Complete Todo Items', async () => {
+        await contract.call('set_task_completed', [0]);
+        let callStatic = await contract.call('get_tasks', [], {callStatic: true});
+        let decode = await callStatic.decode().then(transformTasksList);
+        await assert.deepEqual(decode[0], {id: 0, name: 'testing', completed: true}, 'Could not get tasks');
+    });
 
 });
