@@ -37,10 +37,5 @@ contract ToDoList =
       "ToBeDeployed" => true
       _ => false
 
-  private function map(f : 'a => 'b, l : list('a)) : list('b) =
-    switch(l)
-     [] => []
-     e :: l' => f(e) :: map(f, l')
-
   private function require(b : bool, err : string) =
     if(!b) abort(err)
