@@ -41,7 +41,7 @@ module.exports = env => {
       new HtmlWebpackPlugin({
         inject: true,
         // chunks: ['main'],
-        title: 'Aeternity Naming Demo',
+        title: 'Aeternity Todo List',
         template: './src/index.html',
         filename: distFolder + '/index.html',
         // Avoids building twice for dev
@@ -50,7 +50,7 @@ module.exports = env => {
       new HtmlWebpackHarddiskPlugin(),
       new CleanWebpackPlugin([distFolder]),
       new VueLoaderPlugin(),
-      new BaseHrefWebpackPlugin({ baseHref: env.NODE_ENV === 'prod' ? '/aepp-naming-example/' : '/' })
+      new BaseHrefWebpackPlugin({ baseHref: env.NODE_ENV === 'prod' ? '/aepp-todolist/' : '/' })
     ],
     module: {
       rules: [
