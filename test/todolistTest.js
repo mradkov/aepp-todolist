@@ -61,14 +61,39 @@ describe('Todolist Contract', () => {
     it('TodoList Contract Workflow: Get All Todo Items', async () => {
         let call = await contract.call('get_tasks', [], {callStatic: true});
         let decode = await call.decode().then(transformTasksList);
-        await assert.deepEqual(decode[0], {id: 0, name: 'testing', completed: false}, 'Could not get tasks');
+        await assert.deepEqual(decode[0], {
+            id: 0,
+            name: 'testing',
+            completed: false,
+            status: undefined
+        }, 'Could not get tasks');
     });
 
     it('TodoList Contract Workflow: Complete Todo Items', async () => {
         await contract.call('set_task_completed', [0]);
         let callStatic = await contract.call('get_tasks', [], {callStatic: true});
         let decode = await callStatic.decode().then(transformTasksList);
-        await assert.deepEqual(decode[0], {id: 0, name: 'testing', completed: true}, 'Could not get tasks');
+        await assert.deepEqual(decode[0], {
+            id: 0,
+            name: 'testing',
+            completed: true,
+            status: undefined
+        }, 'Could not get tasks');
+    });
+
+    it('TodoList Contract Workflow: Set Todo Item Status', async () => {
+        await contract.call('add_task', ['testing status']);
+        let call = await contract.call('set_task_status', [1, "InProgress"]);
+        await assert.equal(call.result.returnType, 'ok', 'Could not set task status');
+
+        let callStatic = await contract.call('get_tasks', [], {callStatic: true});
+        let decode = await callStatic.decode().then(transformTasksList);
+        await assert.deepEqual(decode[1], {
+            id: 1,
+            name: 'testing status',
+            completed: false,
+            status: "InProgress"
+        }, 'Could not get tasks');
     });
 
 });

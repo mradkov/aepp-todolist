@@ -4,13 +4,13 @@
   "description": "This is the default package.json generated for your project",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "forgae node && forgae test"
   },
   "author": "Milen Radkov <milenradkov@me.com> (http://mradkov.com)",
   "license": "ISC",
   "dependencies": {
     "@aeternity/aepp-sdk": "3.4.0",
-    "forgae": "1.4.2",
+    "forgae": "1.4.1",
     "yarn": "1.16.0"
   },
   "directories": {
