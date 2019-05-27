@@ -1,0 +1,23 @@
+contract ToDoList =
+
+  record task =
+    { name : string
+    , completed : bool }
+
+  record state =
+    { seq_id : int
+    , tasks : map(int, task) }
+
+  public stateful function init() : state =
+    { seq_id = 0, tasks = {}}
+
+  public stateful function add_task(task_name : string) =
+    let next_seq_id = state.seq_id + 1
+    let new_task_record = { name = task_name, completed = false }
+    put(state{ tasks[state.seq_id] = new_task_record, seq_id = next_seq_id })
+
+  public stateful function set_task_completed(seq_id : int) =
+    put(state{ tasks[seq_id].completed = true })
+
+  public function get_tasks() : map(int, task) =
+    state.tasks
