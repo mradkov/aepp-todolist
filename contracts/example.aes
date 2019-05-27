@@ -14,5 +14,5 @@ contract ToDoList =
   // TODO: set existing element of state to completed
   //public stateful function set_task_completed(seq_id : int)
 
-  // TODO: return all tasks of state in format {id: int, name: string, completed: boolean}
+  // TODO: return all tasks of state in format {name: string, completed: boolean}
   //public function get_tasks() : map(int, task)

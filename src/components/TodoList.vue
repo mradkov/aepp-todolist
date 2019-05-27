@@ -96,10 +96,13 @@
                 this.showLoading = true;
                 this.contractInstance = await this.client.getContractInstance(this.contractCode).catch(this.handleContractError);
                 await this.contractInstance.deploy().catch(this.handleContractError);
-                await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
-                await this.contractInstance.call('add_task', ['Allow contract to add tasks']).catch(this.handleContractError);
-                await this.contractInstance.call('add_task', ['Allow contract to complete tasks']).catch(this.handleContractError);
-                await this.contractInstance.call('set_task_completed', [1]).catch(this.handleContractError);
+                await this.contractInstance.call('add_task', ['Allow contract to add tasks'])
+                    .then(async () => {
+                        await this.contractInstance.call('add_task', ['Allow contract to complete tasks']);
+                        await this.contractInstance.call('set_task_completed', [1]).catch(this.handleContractError);
+                    })
+                    .catch(this.handleContractError);
+
                 const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
                 this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
                 this.showLoading = false;
