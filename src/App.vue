@@ -27,5 +27,7 @@ export default {
   height: 100vh;
   overflow-y: auto;
   background-color: white;
+  display: flex;
+  justify-content: center;
 }
 </style>

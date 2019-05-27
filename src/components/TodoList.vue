@@ -1,19 +1,25 @@
 <template>
   <div>
-    <div class="overlay-loader flex justify-center" v-if="!client || showLoading">
-      <BiggerLoader></BiggerLoader>
+    <div>
+      <div class="overlay-loader flex justify-center" v-if="!client || showLoading">
+        <BiggerLoader></BiggerLoader>
+      </div>
     </div>
-
     <div id="app-content">
       <h2>æternity Todo List</h2>
       <prism-editor :line-numbers="true" v-model="contractCode" :code="contractCode" language="reason"></prism-editor>
       <ae-button face="round" fill="primary" @click="checkContract" id="check-contract">Check Contract</ae-button>
 
       <div id="todo-list">
+        <div v-if="functionAddTaskExists" id="add-todo">
+          <ae-input v-model="addTodoText"></ae-input>
+          <ae-button face="round" fill="primary" @click="addTodo" id="add-todo-button">Add Todo</ae-button>
+        </div>
+
         <ae-list v-for="task in tasks">
           <ae-list-item fill="neutral">
             <div v-if="task.completed" class="completed-task">
-              <ae-check v-model="task.completed" disabled/>
+              <ae-check v-model="task.completed" v-bind:key="task.id" disabled/>
               {{task.name}}
             </div>
             <div v-else>
@@ -63,7 +69,9 @@
                 address: null,
                 client: null,
                 tasks: [],
-                showLoading: true
+                showLoading: true,
+                functionAddTaskExists: false,
+                addTodoText: ""
             }
         },
         methods: {
@@ -85,6 +93,16 @@
                     return {...{id: id}, ...task};
                 });
             },
+            async addTodo() {
+                if (this.addTodoText !== "") {
+                    this.showLoading = true;
+                    await this.contractInstance.call('add_task', [this.addTodoText]).catch(this.handleContractError);
+                    const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
+                    this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
+                    this.addTodoText = "";
+                    this.showLoading = false;
+                }
+            },
             async setTaskCompleted(id) {
                 this.showLoading = true;
                 await this.contractInstance.call('set_task_completed', [id]).catch(this.handleContractError);
@@ -92,19 +110,23 @@
                 this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
                 this.showLoading = false;
             },
+            //its hacky and I know it
             async checkContract() {
                 this.showLoading = true;
                 this.contractInstance = await this.client.getContractInstance(this.contractCode).catch(this.handleContractError);
                 await this.contractInstance.deploy().catch(this.handleContractError);
-                await this.contractInstance.call('add_task', ['Allow contract to add tasks'])
-                    .then(async () => {
-                        await this.contractInstance.call('add_task', ['Allow contract to complete tasks']);
-                        await this.contractInstance.call('set_task_completed', [1]).catch(this.handleContractError);
-                    })
-                    .catch(this.handleContractError);
 
-                const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
-                this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
+                await this.contractInstance.call('get_tasks', [], {callStatic: true}).then(async () => {
+                    await this.contractInstance.call('add_task', ['Allow contract to add tasks'])
+                        .then(async () => {
+                            this.functionAddTaskExists = true;
+                            await this.contractInstance.call('add_task', ['Allow contract to complete tasks']);
+                            await this.contractInstance.call('set_task_completed', [1]).catch(this.handleContractError);
+                            const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
+                            this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
+                        })
+                        .catch(this.handleContractError);
+                }).catch(this.handleContractError);
                 this.showLoading = false;
             }
         },
@@ -131,6 +153,7 @@
 
 <style>
   #app-content {
+    max-width: 1200px;
     padding: 0 20px 20px;
   }
 
@@ -142,11 +165,24 @@
     margin-top: 10px;
   }
 
+  #add-todo {
+    display: flex;
+    flex-direction: row;
+  }
+
+  #add-todo-button {
+    min-width: 170px;
+    margin-left: 10px;
+  }
+
   .completed-task {
     text-decoration: line-through;
   }
 
   .overlay-loader {
+    padding-top: 80px;
+    top: 0;
+    left: 0;
     z-index: 100;
     width: 100vw;
     height: 100vh;
