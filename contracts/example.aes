@@ -2,13 +2,13 @@
 // sophia docs: https://github.com/aeternity/protocol/blob/master/contracts/sophia.md
 contract ToDoList =
 
-  // TODO: define contents of state as record state = { }
+  // TODO: define contents of state as record state = { } to hold tasks
   type state = ()
 
   // TODO: initialize state with empty data
   public stateful function init() = ()
 
-  // TODO: add functionallity to add a task to state put() allows to mutate state
+  // TODO: add functionality to add a task to state, put() allows to mutate state
   //public stateful function add_task(task_name : string)
 
   // TODO: set existing element of state to completed

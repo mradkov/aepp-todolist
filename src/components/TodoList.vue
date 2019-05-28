@@ -2,14 +2,15 @@
   <div>
     <div>
       <div class="overlay-loader" v-show="!client || showLoading">
-        <BiggerLoader></BiggerLoader>
+        <BiggerLoader :progress="loadingProgress"></BiggerLoader>
       </div>
     </div>
     <div id="app-content">
-      <h2>æternity Todo List</h2>
+      <h2>æternity sophia workshop</h2>
       <div class="container">
         <div class="editor">
-          <prism-editor :line-numbers="true" v-model="contractCode" :code="contractCode" language="reason"></prism-editor>
+          <prism-editor :line-numbers="true" v-model="contractCode" :code="contractCode"
+                        language="reason"></prism-editor>
           <div class="errors">
             <div v-for="error in allErrors">
               {{error}}
@@ -37,7 +38,7 @@
           </ae-list>
         </div>
       </div>
-      </div>
+    </div>
 
   </div>
 </template>
@@ -80,6 +81,7 @@
                 showLoading: true,
                 functionAddTaskExists: false,
                 addTodoText: "",
+                loadingProgress: "",
                 allErrors: []
             }
         },
@@ -122,16 +124,21 @@
             },
             //its hacky and I know it
             async checkContract() {
-                this.allErrors = []
+                this.allErrors = [];
+                this.loadingProgress = "deploying contract to testnet";
                 this.showLoading = true;
+
                 this.contractInstance = await this.client.getContractInstance(this.contractCode).catch(this.handleContractError);
                 await this.contractInstance.deploy().catch(this.handleContractError);
 
+                this.loadingProgress = "trying to call get_tasks on contract";
                 await this.contractInstance.call('get_tasks', [], {callStatic: true}).then(async () => {
+                    this.loadingProgress = "trying to call add_task on contract";
                     await this.contractInstance.call('add_task', ['Allow contract to add tasks'])
                         .then(async () => {
                             this.functionAddTaskExists = true;
                             await this.contractInstance.call('add_task', ['Allow contract to complete tasks']);
+                            this.loadingProgress = "trying to call set_task_completed on contract";
                             await this.contractInstance.call('set_task_completed', [1]).catch(this.handleContractError);
                             const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
                             this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
@@ -139,10 +146,19 @@
                         .catch(this.handleContractError);
                 }).catch(this.handleContractError);
                 this.showLoading = false;
+            },
+            async fundAccount() {
+                this.loadingProgress = "funding testnet account";
+                this.address = await this.client.address();
+                const balance = await this.client.balance(this.address, {format: false}).then(this.atomsToAe).catch(() => 0);
+                if (balance <= 5) {
+                    await axios.post(`https://testnet.faucet.aepps.com/account/${this.address}`, {}, {headers: {'content-type': 'application/x-www-form-urlencoded'}})
+                }
             }
         },
         async created() {
             const keypair = this.getKeypair();
+            this.loadingProgress = "initializing sdk client";
             this.client = await Universal({
                 url: "https://sdk-testnet.aepps.com/",
                 internalUrl: "https://sdk-testnet.aepps.com/",
@@ -152,10 +168,11 @@
                 compilerUrl: "https://compiler.aepps.com"
             });
 
-            this.address = await this.client.address();
-            const balance = await this.client.balance(this.address, {format: false}).then(this.atomsToAe).catch(() => 0);
-            if (balance <= 5) {
-                await axios.post(`https://testnet.faucet.aepps.com/account/${this.address}`, {}, {headers: {'content-type': 'application/x-www-form-urlencoded'}})
+            try {
+                await this.fundAccount();
+            } catch (e) {
+                console.error(e);
+                await this.fundAccount();
             }
             this.showLoading = false;
         },
@@ -198,20 +215,20 @@
   }
 
   .errors div {
-      padding: 0.5rem 1rem;
-      background: rgba(255, 0, 0, 0.6);
-      color: white;
-      margin: 1rem 0;
-      display: flex;
-      align-items: center;
-      text-align: left;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 0, 0, 0.6);
+    color: white;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    text-align: left;
   }
 
   .errors div::before {
-      content: "!";
-      font-size: 2rem;
-      font-weight: bold;
-      margin-right: 1rem;
+    content: "!";
+    font-size: 2rem;
+    font-weight: bold;
+    margin-right: 1rem;
   }
 
   .overlay-loader {
@@ -226,17 +243,17 @@
     justify-content: center;
     align-items: flex-start;
     padding-top: 150px;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.85);
     overflow: hidden;
   }
 
   input.ae-input {
-      box-sizing: border-box;
+    box-sizing: border-box;
   }
 
   .ae-check-button::after {
-      top: 2px !important;
-      left: 7px !important;
-      background-size: 1rem !important;
+    top: 2px !important;
+    left: 7px !important;
+    background-size: 1rem !important;
   }
 </style>

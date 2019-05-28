@@ -2,6 +2,7 @@
   <div class="loader">
     <div class="flex justify-center">
       <ae-loader class="ae-loader-scaling"></ae-loader>
+      <div class="ae-loader-progress">{{progress}}</div>
     </div>
   </div>
 </template>
@@ -22,10 +23,10 @@
   }
 
   .ae-loader-progress {
-    font-size: 1em;
-    top: 2em;
-    left: 0;
+    font-size: 1.6em;
+    margin-top: 0.8em;
     text-align: center;
+    font-weight: 700;
   }
 
   .ae-loader-scaling {
