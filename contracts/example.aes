@@ -6,7 +6,7 @@ contract ToDoList =
   type state = ()
 
   // TODO: initialize state with empty data
-  public stateful function init() = ()
+  public function init() = ()
 
   // TODO: add functionality to add a task to state, put() allows to mutate state
   //public stateful function add_task(task_name : string)

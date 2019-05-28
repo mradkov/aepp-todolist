@@ -11,7 +11,7 @@ contract ToDoList =
     { seq_id : int
     , tasks : tasks }
 
-  public stateful function init() : state =
+  public function init() : state =
     { seq_id = 0, tasks = {}}
 
   public stateful function add_task(task_name : string) =
