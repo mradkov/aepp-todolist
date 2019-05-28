@@ -19,7 +19,6 @@
 <style scoped>
   .loader {
     position: absolute;
-    width: 100%;
   }
 
   .ae-loader-progress {

@@ -1,35 +1,44 @@
 <template>
   <div>
     <div>
-      <div class="overlay-loader flex justify-center" v-if="!client || showLoading">
+      <div class="overlay-loader" v-show="!client || showLoading">
         <BiggerLoader></BiggerLoader>
       </div>
     </div>
     <div id="app-content">
       <h2>æternity Todo List</h2>
-      <prism-editor :line-numbers="true" v-model="contractCode" :code="contractCode" language="reason"></prism-editor>
-      <ae-button face="round" fill="primary" @click="checkContract" id="check-contract">Check Contract</ae-button>
+      <div class="container">
+        <div class="editor">
+          <prism-editor :line-numbers="true" v-model="contractCode" :code="contractCode" language="reason"></prism-editor>
+          <div class="errors">
+            <div v-for="error in allErrors">
+              {{error}}
+            </div>
+          </div>
 
-      <div id="todo-list">
-        <div v-if="functionAddTaskExists" id="add-todo">
-          <ae-input v-model="addTodoText"></ae-input>
-          <ae-button face="round" fill="primary" @click="addTodo" id="add-todo-button">Add Todo</ae-button>
+          <ae-button face="round" fill="primary" @click="checkContract" id="check-contract">Check Contract</ae-button>
         </div>
-
-        <ae-list v-for="task in tasks">
-          <ae-list-item fill="neutral">
-            <div v-if="task.completed" class="completed-task">
-              <ae-check v-model="task.completed" v-bind:key="task.id" disabled/>
-              {{task.name}}
-            </div>
-            <div v-else>
-              <ae-check v-model="task.completed" @change="setTaskCompleted(task.id)"/>
-              {{task.name}}
-            </div>
-          </ae-list-item>
-        </ae-list>
+        <div class="todo-list">
+          <div v-if="functionAddTaskExists" id="add-todo">
+            <ae-input v-model="addTodoText"></ae-input>
+            <ae-button face="round" fill="primary" @click="addTodo" id="add-todo-button">Add Todo</ae-button>
+          </div>
+          <ae-list v-for="task in tasks" :key="task.id">
+            <ae-list-item fill="neutral">
+              <div v-if="task.completed" class="completed-task">
+                <ae-check v-model="task.completed" v-bind:key="task.id" disabled/>
+                {{task.name}}
+              </div>
+              <div v-else>
+                <ae-check v-model="task.completed" @change="setTaskCompleted(task.id)"/>
+                {{task.name}}
+              </div>
+            </ae-list-item>
+          </ae-list>
+        </div>
       </div>
-    </div>
+      </div>
+
   </div>
 </template>
 
@@ -42,7 +51,7 @@
 
     import {Universal} from '@aeternity/aepp-sdk'
     import * as Crypto from '@aeternity/aepp-sdk/es/utils/crypto'
-    import {AeButton, AeInput, AeList, AeListItem, AeCheck, mixins} from '@aeternity/aepp-components'
+    import {AeButton, AeInput, AeList, AeListItem, AeCheck} from '@aeternity/aepp-components'
     import {BigNumber} from 'bignumber.js';
     import axios from 'axios';
 
@@ -51,8 +60,7 @@
     import BiggerLoader from './BiggerLoader'
 
     export default {
-        name: 'NameRegistration',
-        mixins: [mixins.events],
+        name: 'TodoList',
         components: {
             AeInput,
             AeButton,
@@ -71,7 +79,8 @@
                 tasks: [],
                 showLoading: true,
                 functionAddTaskExists: false,
-                addTodoText: ""
+                addTodoText: "",
+                allErrors: []
             }
         },
         methods: {
@@ -86,7 +95,8 @@
             },
             handleContractError(message) {
                 this.showLoading = false;
-                alert(message);
+                this.allErrors.push(message);
+                //alert(message);
             },
             transformTasksList(list) {
                 return list.map(([id, task]) => {
@@ -112,6 +122,7 @@
             },
             //its hacky and I know it
             async checkContract() {
+                this.allErrors = []
                 this.showLoading = true;
                 this.contractInstance = await this.client.getContractInstance(this.contractCode).catch(this.handleContractError);
                 await this.contractInstance.deploy().catch(this.handleContractError);
@@ -161,13 +172,20 @@
     margin-top: 10px;
   }
 
-  #todo-list {
-    margin-top: 10px;
+  .todo-list {
+    margin-top: 2rem;
+  }
+
+  .editor {
+    display: block;
+    max-width: 100vw;
   }
 
   #add-todo {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    margin-bottom: 1rem;
   }
 
   #add-todo-button {
@@ -179,15 +197,46 @@
     text-decoration: line-through;
   }
 
+  .errors div {
+      padding: 0.5rem 1rem;
+      background: rgba(255, 0, 0, 0.6);
+      color: white;
+      margin: 1rem 0;
+      display: flex;
+      align-items: center;
+      text-align: left;
+  }
+
+  .errors div::before {
+      content: "!";
+      font-size: 2rem;
+      font-weight: bold;
+      margin-right: 1rem;
+  }
+
   .overlay-loader {
-    padding-top: 80px;
     top: 0;
     left: 0;
+    bottom: 0;
+    right: 0;
     z-index: 100;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
     position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 150px;
     background-color: rgba(255, 255, 255, 0.7);
     overflow: hidden;
+  }
+
+  input.ae-input {
+      box-sizing: border-box;
+  }
+
+  .ae-check-button::after {
+      top: 2px !important;
+      left: 7px !important;
+      background-size: 1rem !important;
   }
 </style>
