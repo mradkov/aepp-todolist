@@ -30,9 +30,13 @@
                 <ae-check v-model="task.completed" v-bind:key="task.id" disabled/>
                 {{task.name}}
               </div>
-              <div v-else>
+              <div v-else class="non-completed-task">
                 <ae-check v-model="task.completed" @change="setTaskCompleted(task.id)"/>
+                <span class="status-label" :class="task.status" v-if="task.status">{{task.status}}</span>
                 {{task.name}}
+                <ae-button face="round" @click="setNextStatus(task.id, task.status)" id="next-status-button"
+                           v-if="nextStatus(task.status) !== ''">set {{nextStatus(task.status)}}
+                </ae-button>
               </div>
             </ae-list-item>
           </ae-list>
@@ -52,7 +56,7 @@
 
     import {Universal} from '@aeternity/aepp-sdk'
     import * as Crypto from '@aeternity/aepp-sdk/es/utils/crypto'
-    import {AeButton, AeInput, AeList, AeListItem, AeCheck} from '@aeternity/aepp-components'
+    import {AeButton, AeInput, AeLabel, AeList, AeListItem, AeCheck} from '@aeternity/aepp-components'
     import {BigNumber} from 'bignumber.js';
     import axios from 'axios';
 
@@ -65,6 +69,7 @@
         components: {
             AeInput,
             AeButton,
+            AeLabel,
             AeList,
             AeListItem,
             AeCheck,
@@ -105,22 +110,52 @@
                     return {...{id: id}, ...task};
                 });
             },
+            nextStatus(status) {
+                if (!status) return "InProgress";
+                if (status === "InProgress") return "ReadyForReview";
+                if (status === "ReadyForReview") return "ToBeDeployed";
+                if (status === "ToBeDeployed") return "";
+            },
+            async setNextStatus(id, status) {
+                this.allErrors = [];
+                const nextStatus = this.nextStatus(status);
+
+                if (nextStatus !== "") {
+                    this.showLoading = true;
+                    this.loadingProgress = "calling set_task_status on contract";
+                    await this.contractInstance.call('set_task_status', [id, nextStatus]).catch(this.handleContractError);
+                    this.loadingProgress = "calling get_tasks on contract";
+                    const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
+                    this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
+                    this.showLoading = false;
+                    this.loadingProgress = "";
+                }
+            },
             async addTodo() {
+                this.allErrors = [];
+
                 if (this.addTodoText !== "") {
                     this.showLoading = true;
+                    this.loadingProgress = "calling add_task on contract";
                     await this.contractInstance.call('add_task', [this.addTodoText]).catch(this.handleContractError);
+                    this.loadingProgress = "calling get_tasks on contract";
                     const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
                     this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
                     this.addTodoText = "";
                     this.showLoading = false;
+                    this.loadingProgress = "";
                 }
             },
             async setTaskCompleted(id) {
+                this.allErrors = [];
                 this.showLoading = true;
+                this.loadingProgress = "calling set_task_completed on contract";
                 await this.contractInstance.call('set_task_completed', [id]).catch(this.handleContractError);
+                this.loadingProgress = "calling get_tasks on contract";
                 const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
                 this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
                 this.showLoading = false;
+                this.loadingProgress = "";
             },
             //its hacky and I know it
             async checkContract() {
@@ -131,21 +166,24 @@
                 this.contractInstance = await this.client.getContractInstance(this.contractCode).catch(this.handleContractError);
                 await this.contractInstance.deploy().catch(this.handleContractError);
 
-                this.loadingProgress = "trying to call get_tasks on contract";
+                this.loadingProgress = "calling get_tasks on contract";
                 await this.contractInstance.call('get_tasks', [], {callStatic: true}).then(async () => {
-                    this.loadingProgress = "trying to call add_task on contract";
+                    this.loadingProgress = "calling add_task on contract";
                     await this.contractInstance.call('add_task', ['Allow contract to add tasks'])
                         .then(async () => {
                             this.functionAddTaskExists = true;
                             await this.contractInstance.call('add_task', ['Allow contract to complete tasks']);
-                            this.loadingProgress = "trying to call set_task_completed on contract";
+                            this.loadingProgress = "calling set_task_completed on contract";
                             await this.contractInstance.call('set_task_completed', [1]).catch(this.handleContractError);
+
+                            this.loadingProgress = "calling get_tasks on contract";
                             const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
                             this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
                         })
                         .catch(this.handleContractError);
                 }).catch(this.handleContractError);
                 this.showLoading = false;
+                this.loadingProgress = "";
             },
             async fundAccount() {
                 this.loadingProgress = "funding testnet account";
@@ -255,5 +293,34 @@
     top: 2px !important;
     left: 7px !important;
     background-size: 1rem !important;
+  }
+
+  .non-completed-task{
+    width: 100%;
+    text-align: start;
+  }
+
+  #next-status-button {
+    padding: 0 0.8rem;
+    height: 40px;
+    float: right;
+  }
+
+  .status-label {
+    padding: 5px;
+    border-radius: 5px;
+  }
+
+  .status-label.InProgress {
+    background-color: yellow;
+  }
+
+  .status-label.ReadyForReview {
+    color: white;
+    background-color: blue;
+  }
+
+  .status-label.ToBeDeployed {
+    background-color: limegreen;
   }
 </style>
