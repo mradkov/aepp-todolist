@@ -18,6 +18,8 @@
           </div>
 
           <ae-button face="round" fill="primary" @click="checkContract" id="check-contract">Check Contract</ae-button>
+          <ae-button face="round" fill="default" @click="resetContract" id="reset-contract">Reset Contract Source
+          </ae-button>
         </div>
         <div class="todo-list">
           <div v-if="functionAddTaskExists" id="add-todo">
@@ -159,6 +161,7 @@
             },
             //its hacky and I know it
             async checkContract() {
+                this.saveContract();
                 this.allErrors = [];
                 this.loadingProgress = "deploying contract to testnet";
                 this.showLoading = true;
@@ -192,10 +195,23 @@
                 if (balance <= 5) {
                     await axios.post(`https://testnet.faucet.aepps.com/account/${this.address}`, {}, {headers: {'content-type': 'application/x-www-form-urlencoded'}})
                 }
+            },
+            saveContract() {
+                localStorage.setItem('contract-code', this.contractCode);
+            },
+            getContract() {
+                const contractCode = localStorage.getItem('contract-code');
+                return contractCode ? contractCode : example;
+            },
+            resetContract() {
+                this.contractCode = example;
+                this.saveContract();
             }
+
         },
         async created() {
             const keypair = this.getKeypair();
+            this.contractCode = this.getContract();
             this.loadingProgress = "initializing sdk client";
             this.client = await Universal({
                 url: "https://sdk-testnet.aepps.com/",
@@ -225,6 +241,10 @@
 
   #check-contract {
     margin-top: 10px;
+  }
+
+  #reset-contract {
+    margin-left: 10px;
   }
 
   .todo-list {
@@ -295,7 +315,7 @@
     background-size: 1rem !important;
   }
 
-  .non-completed-task{
+  .non-completed-task {
     width: 100%;
     text-align: start;
   }
