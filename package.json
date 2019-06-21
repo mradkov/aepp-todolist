@@ -1,25 +1,96 @@
 {
   "name": "aepp-todolist",
   "version": "1.0.0",
-  "description": "This is the default package.json generated for your project",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "forgae node && forgae test",
+    "deploy:contract": "forgae deploy",
+    "deploy:aepp": "./deploy-gh-pages.sh",
+    "build": "webpack -p --env.NODE_ENV=prod",
+    "serve": "webpack-dev-server --env.NODE_ENV=dev --config ./webpack.config.js --verbose",
+    "build:stats": "webpack --env.NODE_ENV=prod --profile --json > stats.json"
   },
-  "author": "Milen Radkov <milenradkov@me.com> (http://mradkov.com)",
   "license": "ISC",
   "dependencies": {
-    "@aeternity/aepp-sdk": "3.0.0",
-    "forgae": "1.4.0",
-    "yarn": "1.16.0"
+    "@aeternity/aepp-components": "git+https://github.com/aeternity/aepp-components.git#develop",
+    "@aeternity/aepp-sdk": "3.4.0",
+    "forgae": "1.4.1",
+    "axios": "^0.18.0",
+    "vue": "^2.6.10",
+    "vue-meta": "^1.5.8",
+    "vue-prism-editor": "^0.2.1",
+    "vue-router": "^3.0.2",
+    "yarn": "1.16.0",
+    "bignumber.js": "^8.1.1",
+    "prismjs": "^1.16.0"
   },
   "directories": {
     "test": "test"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.3.3",
+    "@babel/node": "^7.2.2",
+    "@babel/plugin-proposal-object-rest-spread": "^7.3.2",
+    "@babel/plugin-transform-block-scoping": "^7.3.4",
+    "@babel/plugin-transform-modules-commonjs": "^7.2.0",
+    "@babel/plugin-transform-runtime": "^7.2.0",
+    "@babel/polyfill": "^7.2.5",
+    "@babel/preset-env": "^7.3.4",
+    "@babel/register": "^7.0.0",
+    "@babel/runtime": "^7.3.1",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.5",
+    "babel-plugin-add-module-exports": "^1.0.0",
+    "base-href-webpack-plugin": "^2.0.0",
+    "browserslist": "^4.4.1",
+    "clean-webpack-plugin": "^1.0.1",
+    "css-loader": "^2.1.0",
+    "eslint": "^5.14.0",
+    "eslint-plugin-vue": "^5.2.2",
+    "file-loader": "^3.0.1",
+    "html-webpack-harddisk-plugin": "^1.0.1",
+    "html-webpack-plugin": "^3.2.0",
+    "node-sass": "^4.11.0",
+    "raw-loader": "^2.0.0",
+    "sass-loader": "^7.1.0",
+    "standard": "^12.0.1",
+    "standard-loader": "^6.0.1",
+    "vue-loader": "^15.6.2",
+    "vue-style-loader": "^4.1.2",
+    "vue-template-compiler": "^2.6.8",
+    "webpack": "^4.29.4",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.1.14",
+    "webpack-serve": "^2.0.3"
+  },
   "keywords": [
     "aeternity",
     "aepp",
     "todo-list"
+  ],
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "rules": {},
+    "parserOptions": {
+      "parser": "babel-eslint"
+    }
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {}
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
   ]
 }

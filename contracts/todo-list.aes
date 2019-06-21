@@ -1,33 +1,41 @@
 contract ToDoList =
-  record state = {
-    index: int,
-    tasks : map(int, task)}
 
-  record task = {
-    name: string,
-    completed: bool }
+  record task =
+    { name : string
+    , completed : bool
+    , status : option(string)}
 
-  public stateful function init() =
-    { index = 0,
-      tasks = {}}
+  type tasks = map(int, task)
 
-  public function get_tasks_count() : int =
-    Map.size(state.tasks)
+  record state =
+    { seq_id : int
+    , tasks : tasks }
 
-  public stateful function add_task(task : string) =
-    put(state{tasks[state.index] = { name = task, completed = false } : task })
-    put(state{index = state.index + 1})
+  public function init() : state =
+    { seq_id = 0, tasks = {}}
 
-  public stateful function complete_task(index : int) : bool =
-    put(state{tasks[index].completed = true})
-    true
+  public stateful function add_task(task_name : string) =
+    let next_seq_id = state.seq_id + 1
+    let new_task_record = { name = task_name, completed = false, status = None }
+    put(state{ tasks[state.seq_id] = new_task_record, seq_id = next_seq_id })
 
-  public function get_task_by_index(index: int) : string =
-    switch(Map.lookup(index, state.tasks))
-      None  => "No such task."
-      Some(x) => x.name
+  public stateful function set_task_completed(seq_id : int) =
+    put(state{ tasks[seq_id].completed = true })
 
-  public function is_task_completed(index : int) : bool =
-    switch(Map.lookup(index, state.tasks))
-      None  => false
-      Some(x) => x.completed
+  public stateful function set_task_status(seq_id : int, status : string) =
+    require(check_status(status), "INVALID_STATUS")
+    require(!state.tasks[seq_id].completed, "ALREADY_COMPLETED")
+    put(state{ tasks[seq_id].status = Some(status) })
+
+  public function get_tasks() : tasks =
+    state.tasks
+
+  private function check_status(status :string) : bool =
+    switch(status)
+      "InProgress" => true
+      "ReadyForReview" => true
+      "ToBeDeployed" => true
+      _ => false
+
+  private function require(b : bool, err : string) =
+    if(!b) abort(err)
