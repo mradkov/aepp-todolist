@@ -18,7 +18,7 @@
           </div>
 
           <ae-button face="round" fill="primary" @click="checkContract" id="check-contract">Check Contract</ae-button>
-          <ae-button face="round" fill="default" @click="resetContract" id="reset-contract">Reset Contract Source
+          <ae-button face="round" @click="resetContract" id="reset-contract">Reset Contract Source
           </ae-button>
         </div>
         <div class="todo-list">
@@ -34,10 +34,10 @@
               </div>
               <div v-else class="non-completed-task">
                 <ae-check v-model="task.completed" @change="setTaskCompleted(task.id)"/>
-                <span class="status-label" :class="task.status" v-if="task.status">{{task.status}}</span>
+                <span class="status-label" :class="task.status" v-if="task.status !== 'None'">{{task.status}}</span>
                 {{task.name}}
                 <ae-button face="round" @click="setNextStatus(task.id, task.status)" id="next-status-button"
-                           v-if="nextStatus(task.status) !== ''">set {{nextStatus(task.status)}}
+                           v-if="nextStatus(task.status) !== 'None'">set {{nextStatus(task.status)}}
                 </ae-button>
               </div>
             </ae-list-item>
@@ -113,7 +113,7 @@
                 });
             },
             nextStatus(status) {
-                if (!status) return "InProgress";
+                if (!status || status == 'None') return "InProgress";
                 if (status === "InProgress") return "ReadyForReview";
                 if (status === "ReadyForReview") return "ToBeDeployed";
                 if (status === "ToBeDeployed") return "";
