@@ -34,10 +34,10 @@
               </div>
               <div v-else class="non-completed-task">
                 <ae-check v-model="task.completed" @change="setTaskCompleted(task.id)"/>
-                <span class="status-label" :class="task.status" v-if="task.status !== 'None'">{{task.status}}</span>
+                <span class="status-label" :class="task.status" v-if="task.status">{{task.status}}</span>
                 {{task.name}}
                 <ae-button face="round" @click="setNextStatus(task.id, task.status)" id="next-status-button"
-                           v-if="nextStatus(task.status) !== 'None'">set {{nextStatus(task.status)}}
+                           v-if="nextStatus(task.status)">set {{nextStatus(task.status)}}
                 </ae-button>
               </div>
             </ae-list-item>
