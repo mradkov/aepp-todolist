@@ -5,28 +5,18 @@ contract ToDoList =
   // TODO: define contents of state as record state = { } to hold tasks.
   //The smart contract should be able to store several tasks and those tasks should be indexed
   //Each task should contain a variable "name" and a variable "completed" which can only be true or false
-  record state = {  index: int
-                  , tasks: map(int, task) }
-
-  record task = { name: string
-                , completed: bool }
+  //record state =
 
   // TODO: initialize state with empty data
-  entrypoint init() = { index = 0, tasks = {} }
+  //entrypoint init() : state =
 
   // TODO: The entrypoint "add_task" is accepting a new task name,
   // define a new task and store it to the state,
   // Hint: put(state{}) allows you to mutate state
-  stateful entrypoint add_task(task_name : string) =
-    let new_index = state.index + 1
-    let task={name = task_name,completed = false}
-    put(state{tasks[state.index]=task})
-    put(state{index = new_index })
+  //stateful entrypoint add_task(task_name : string) =
 
   // TODO: set existing task of state to completed
-  stateful entrypoint set_task_completed(seq_id : int) =
-    put(state{tasks[seq_id].completed=true})
+  //stateful entrypoint set_task_completed(seq_id : int) =
 
   // TODO: return all tasks of state in format {name: string, completed: bool}
-  entrypoint get_tasks() : map(int, task) =
-    state.tasks
+  //entrypoint get_tasks() : map(int, task) =
