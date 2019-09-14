@@ -16,7 +16,7 @@
     "@aeternity/aepp-sdk": "4.7.0",
     "core-js": "^2.6.9",
     "forgae": "2.0.1",
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "vue": "^2.6.10",
     "vue-meta": "^1.5.8",
     "vue-prism-editor": "^0.2.1",
