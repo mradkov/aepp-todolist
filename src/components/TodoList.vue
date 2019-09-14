@@ -125,10 +125,10 @@
                 if (nextStatus !== "") {
                     this.showLoading = true;
                     this.loadingProgress = "calling set_task_status on contract";
-                    await this.contractInstance.call('set_task_status', [id, nextStatus]).catch(this.handleContractError);
+                    await this.contractInstance.methods.set_task_status([id, nextStatus]).catch(this.handleContractError);
                     this.loadingProgress = "calling get_tasks on contract";
-                    const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
-                    this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
+                    const tasksCall = await this.contractInstance.method.get_tasks().catch(this.handleContractError);
+                    this.tasks = this.transformTasksList(tasksCall.decodedResult).catch(this.handleContractError);
                     this.showLoading = false;
                     this.loadingProgress = "";
                 }
@@ -139,10 +139,10 @@
                 if (this.addTodoText !== "") {
                     this.showLoading = true;
                     this.loadingProgress = "calling add_task on contract";
-                    await this.contractInstance.call('add_task', [this.addTodoText]).catch(this.handleContractError);
+                    await this.contractInstance.methods.add_task([this.addTodoText]).catch(this.handleContractError);
                     this.loadingProgress = "calling get_tasks on contract";
-                    const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
-                    this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
+                    const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
+                    this.tasks = this.transformTasksList(tasksCall.decodedResult).catch(this.handleContractError);
                     this.addTodoText = "";
                     this.showLoading = false;
                     this.loadingProgress = "";
@@ -152,10 +152,10 @@
                 this.allErrors = [];
                 this.showLoading = true;
                 this.loadingProgress = "calling set_task_completed on contract";
-                await this.contractInstance.call('set_task_completed', [id]).catch(this.handleContractError);
+                await this.contractInstance.methods.set_task_completed([id]).catch(this.handleContractError);
                 this.loadingProgress = "calling get_tasks on contract";
-                const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
-                this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
+                const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
+                this.tasks = this.transformTasksList(tasksCall.decodedResult).catch(this.handleContractError);
                 this.showLoading = false;
                 this.loadingProgress = "";
             },
@@ -170,18 +170,18 @@
                 await this.contractInstance.deploy().catch(this.handleContractError);
 
                 this.loadingProgress = "calling get_tasks on contract";
-                await this.contractInstance.call('get_tasks', [], {callStatic: true}).then(async () => {
+                await this.contractInstance.methods.get_tasks().then(async () => {
                     this.loadingProgress = "calling add_task on contract";
-                    await this.contractInstance.call('add_task', ['Allow contract to add tasks'])
+                    await this.contractInstance.methods.add_task(['Allow contract to add tasks'])
                         .then(async () => {
                             this.functionAddTaskExists = true;
-                            await this.contractInstance.call('add_task', ['Allow contract to complete tasks']);
+                            await this.contractInstance.methods.add_task(['Allow contract to complete tasks']);
                             this.loadingProgress = "calling set_task_completed on contract";
-                            await this.contractInstance.call('set_task_completed', [1]).catch(this.handleContractError);
+                            await this.contractInstance.methods.set_task_completed([1]).catch(this.handleContractError);
 
                             this.loadingProgress = "calling get_tasks on contract";
-                            const tasksCall = await this.contractInstance.call('get_tasks', [], {callStatic: true}).catch(this.handleContractError);
-                            this.tasks = await tasksCall.decode().then(this.transformTasksList).catch(this.handleContractError);
+                            const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
+                            this.tasks = this.transformTasksList(tasksCall.decodedResult).catch(this.handleContractError);
                         })
                         .catch(this.handleContractError);
                 }).catch(this.handleContractError);
