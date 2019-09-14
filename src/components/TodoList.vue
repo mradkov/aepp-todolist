@@ -56,13 +56,13 @@
     import 'vue-prism-editor/dist/VuePrismEditor.css' // import the styles
     import PrismEditor from 'vue-prism-editor'
 
-    import {Universal} from '@aeternity/aepp-sdk'
+    import {Universal} from '@aeternity/aepp-sdk/es/ae/universal'
     import * as Crypto from '@aeternity/aepp-sdk/es/utils/crypto'
     import {AeButton, AeInput, AeLabel, AeList, AeListItem, AeCheck} from '@aeternity/aepp-components'
     import {BigNumber} from 'bignumber.js';
     import axios from 'axios';
 
-    import example from 'raw-loader!../../contracts/example.aes';
+    import example from '../../contracts/example.aes';
 
     import BiggerLoader from './BiggerLoader'
 
@@ -210,6 +210,7 @@
 
         },
         async created() {
+            console.log(example);
             const keypair = this.getKeypair();
             this.contractCode = this.getContract();
             this.loadingProgress = "initializing sdk client";
@@ -226,7 +227,6 @@
                 await this.fundAccount();
             } catch (e) {
                 console.error(e);
-                await this.fundAccount();
             }
             this.showLoading = false;
         },

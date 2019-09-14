@@ -3,24 +3,31 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 // Cleans dist folder before building for fresh build
-const CleanWebpackPlugin = require('clean-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const { VueLoaderPlugin } = require('vue-loader')
-const { BaseHrefWebpackPlugin } = require('base-href-webpack-plugin');
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+const PurgecssPlugin = require('purgecss-webpack-plugin')
+const WebpackPwaManifest = require('webpack-pwa-manifest');
+const glob = require('glob-all')
 
-const distFolder = path.resolve(__dirname, 'dist')
+// Custom PurgeCSS extractor for Tailwind that allows special characters in
+// class names.
+//
+// https://github.com/FullHuman/purgecss#extractor
+class TailwindExtractor {
+  static extract (content) {
+    return content.match(/[A-z0-9-:\/]+/g) || []
+  }
+}
 
 module.exports = env => {
   return {
     mode: env.NODE_ENV === 'prod' ? 'production' : 'development',
     resolve: {
-      extensions: ['.vue', '.css', '.js'],
-      alias: {
-        '~': path.resolve(__dirname, './src/')
-      }
+      extensions: ['.vue', '.css', '.js']
     },
     node: {
-      fs: 'empty',
-      process: 'mock'
+      fs: 'empty'
     },
     entry: {
       'main': './src/main.js'
@@ -33,7 +40,8 @@ module.exports = env => {
       contentBase: path.join(__dirname, 'dist'),
       port: 8081,
       historyApiFallback: true,
-      disableHostCheck: true,
+      // Enable to allow other (than localhost) machines to access the aepp on your computer
+      disableHostCheck: false,
       host: '0.0.0.0'
     },
     devtool: env.NODE_ENV === 'prod' ? '' : 'eval-source-map',
@@ -41,16 +49,36 @@ module.exports = env => {
       new HtmlWebpackPlugin({
         inject: true,
         // chunks: ['main'],
-        title: 'Aeternity Todo List',
+        title: 'Governance Aepp',
         template: './src/index.html',
-        filename: distFolder + '/index.html',
+        filename: path.join(__dirname, 'dist', 'index.html'),
         // Avoids building twice for dev
         alwaysWriteToDisk: true
       }),
+      new PurgecssPlugin({
+        // Specify the locations of any files you want to scan for class names.
+        paths: glob.sync([
+          path.join(__dirname, './src/**/*.vue'),
+          path.join(__dirname, './src/index.html')
+        ]),
+        extractors: [
+          {
+            extractor: TailwindExtractor,
+            // Specify the file extensions to include when scanning for
+            // class names.
+            extensions: ['html', 'js', 'vue']
+          }
+        ]
+      }),
       new HtmlWebpackHarddiskPlugin(),
-      new CleanWebpackPlugin([distFolder]),
+      new CleanWebpackPlugin(),
       new VueLoaderPlugin(),
-      new BaseHrefWebpackPlugin({ baseHref: env.NODE_ENV === 'prod' ? '/aepp-todolist/' : '/' })
+      new WebpackPwaManifest({
+        name: 'Example Aepp',
+        short_name: 'Example',
+        description: 'Your average aepp.',
+        background_color: '#ff0d6a'
+      })
     ],
     module: {
       rules: [
@@ -59,12 +87,11 @@ module.exports = env => {
         {
           test: /\.js$/,
           include: [
-            path.resolve(__dirname, "src"),
-            path.resolve(__dirname, "node_modules/@aeternity"),
-            path.resolve(__dirname, "node_modules/rlp"),
-            // Contains "const" or "let"
-            path.resolve(__dirname, "node_modules/base-x"),
-            path.resolve(__dirname, "node_modules/file-type"),
+            path.resolve(__dirname, 'src'),
+            path.resolve(__dirname, 'node_modules/@aeternity'),
+            path.resolve(__dirname, 'node_modules/rlp'),
+            // Contains 'const' or 'let'
+            path.resolve(__dirname, 'node_modules/base-x')
           ],
           loader: 'babel-loader'
         },
@@ -72,7 +99,7 @@ module.exports = env => {
           type: 'javascript/auto',
           test: /\.mjs$/,
           include: [
-            path.resolve(__dirname, "node_modules/@download/blockies")
+            path.resolve(__dirname, 'node_modules/@download/blockies')
           ],
           loader: 'babel-loader'
         },
@@ -82,7 +109,15 @@ module.exports = env => {
           test: /\.css$/,
           use: [
             'vue-style-loader',
-            'css-loader'
+            'css-loader',
+            {
+              loader: 'postcss-loader',
+              options: {
+                config: {
+                  path: 'postcss.config.js'
+                }
+              }
+            }
           ]
         },
         // allows vue compoents in '<template><html><script><style>' syntax
@@ -91,18 +126,16 @@ module.exports = env => {
           loader: 'vue-loader',
           options: {
             loaders: {
-              js: 'babel-loader!standard-loader?error=true'
+              js: 'babel-loader'
             }
             // extractCSS: true
             // other vue-loader options go here
           }
         },
         {
-          test: /\.scss$/,
+          test: /\.aes$/,
           use: [
-            'vue-style-loader',
-            'css-loader', // translates CSS into CommonJS
-            'sass-loader' // compiles Sass to CSS, using Node Sass by default
+            'raw-loader'
           ]
         },
         {
