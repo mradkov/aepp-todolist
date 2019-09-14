@@ -210,7 +210,6 @@
 
         },
         async created() {
-            console.log(example);
             const keypair = this.getKeypair();
             this.contractCode = this.getContract();
             this.loadingProgress = "initializing sdk client";

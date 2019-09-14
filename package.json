@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "forgae node && forgae test",
-    "deploy:contract": "forgae deploy",
+    "test": "aeproject node && aeproject test",
+    "deploy:contract": "aeproject deploy",
     "deploy:aepp": "./deploy-gh-pages.sh",
     "build": "webpack -p --env.NODE_ENV=prod",
     "serve": "webpack-dev-server --env.NODE_ENV=dev --config ./webpack.config.js --verbose",
@@ -14,16 +14,15 @@
   "dependencies": {
     "@aeternity/aepp-components": "git+https://github.com/aeternity/aepp-components.git#develop",
     "@aeternity/aepp-sdk": "4.7.0",
-    "core-js": "^2.6.9",
-    "forgae": "2.0.1",
+    "aeproject-lib": "1.0.0",
     "axios": "^0.18.0",
+    "bignumber.js": "^8.1.1",
+    "core-js": "^2.6.9",
+    "prismjs": "^1.16.0",
     "vue": "^2.6.10",
     "vue-meta": "^1.5.8",
     "vue-prism-editor": "^0.2.1",
-    "vue-router": "^3.1.3",
-    "yarn": "1.16.0",
-    "bignumber.js": "^8.1.1",
-    "prismjs": "^1.16.0"
+    "vue-router": "^3.1.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.6.0",

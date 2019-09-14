@@ -15,12 +15,11 @@
  *  PERFORMANCE OF THIS SOFTWARE.
  */
 const Ae = require('@aeternity/aepp-sdk').Universal;
+const fs = require('fs');
 
 const config = {
     host: "http://localhost:3001/",
     internalHost: "http://localhost:3001/internal/",
-    gas: 200000,
-    ttl: 55,
     compilerUrl: 'http://localhost:3080'
 };
 
@@ -38,56 +37,53 @@ describe('Todolist Contract', () => {
             url: config.host,
             internalUrl: config.internalHost,
             keypair: ownerKeyPair,
-            nativeMode: true,
             networkId: 'ae_devnet',
             compilerUrl: config.compilerUrl
         });
     });
 
     it('Deploying TodoList Contract', async () => {
-        let contractSource = utils.readFileRelative('./contracts/todo-list.aes', "utf-8");
-
+        let contractSource = fs.readFileSync('./contracts/todo-list.aes', "utf-8");
         contract = await owner.getContractInstance(contractSource);
         const deploy = await contract.deploy();
-
-        await assert.equal(deploy.deployInfo.result.returnType, 'ok', 'Could not deploy the Todolist Smart Contract');
+        await assert.equal(deploy.result.returnType, 'ok', 'Could not deploy the Todolist Smart Contract');
     });
 
     it('TodoList Contract Workflow: Add Todo Item', async () => {
-        let call = await contract.call('add_task', ['testing']);
+        let call = await contract.methods.add_task('testing');
         await assert.equal(call.result.returnType, 'ok', 'Could not add a task');
     });
 
     it('TodoList Contract Workflow: Get All Todo Items', async () => {
-        let call = await contract.call('get_tasks', [], {callStatic: true});
-        let decode = await call.decode().then(transformTasksList);
+        let call = await contract.methods.get_tasks();
+        let decode = transformTasksList(call.decodedResult);
         await assert.deepEqual(decode[0], {
             id: 0,
             name: 'testing',
             completed: false,
-            status: undefined
+            status: ""
         }, 'Could not get tasks');
     });
 
     it('TodoList Contract Workflow: Complete Todo Items', async () => {
-        await contract.call('set_task_completed', [0]);
-        let callStatic = await contract.call('get_tasks', [], {callStatic: true});
-        let decode = await callStatic.decode().then(transformTasksList);
+        await contract.methods.set_task_completed(0);
+        const callStatic = await contract.methods.get_tasks();
+        let decode = transformTasksList(callStatic.decodedResult);
         await assert.deepEqual(decode[0], {
             id: 0,
             name: 'testing',
             completed: true,
-            status: undefined
+            status: ""
         }, 'Could not get tasks');
     });
 
     it('TodoList Contract Workflow: Set Todo Item Status', async () => {
-        await contract.call('add_task', ['testing status']);
-        let call = await contract.call('set_task_status', [1, "InProgress"]);
+        await contract.methods.add_task('testing status');
+        let call = await contract.methods.set_task_status(1, "InProgress");
         await assert.equal(call.result.returnType, 'ok', 'Could not set task status');
 
-        let callStatic = await contract.call('get_tasks', [], {callStatic: true});
-        let decode = await callStatic.decode().then(transformTasksList);
+        const callStatic = await contract.methods.get_tasks();
+        let decode = transformTasksList(callStatic.decodedResult);
         await assert.deepEqual(decode[1], {
             id: 1,
             name: 'testing status',
