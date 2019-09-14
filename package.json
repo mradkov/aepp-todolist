@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@aeternity/aepp-components": "git+https://github.com/aeternity/aepp-components.git#develop",
-    "@aeternity/aepp-sdk": "4.0.1",
+    "@aeternity/aepp-sdk": "^4.6.0",
     "forgae": "2.0.1",
     "axios": "^0.18.0",
     "vue": "^2.6.10",
