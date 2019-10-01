@@ -60,7 +60,6 @@
     import * as Crypto from '@aeternity/aepp-sdk/es/utils/crypto'
     import {AeButton, AeInput, AeLabel, AeList, AeListItem, AeCheck} from '@aeternity/aepp-components'
     import {BigNumber} from 'bignumber.js';
-    import axios from 'axios';
 
     import example from '../../contracts/example.aes';
 
@@ -80,6 +79,8 @@
         },
         data() {
             return {
+                nodeUrl: "https://testnet.aeternity.art",
+                keypair: null,
                 contractCode: example,
                 contractInstance: null,
                 address: null,
@@ -188,13 +189,18 @@
                 this.showLoading = false;
                 this.loadingProgress = "";
             },
-            async fundAccount() {
-                this.loadingProgress = "funding testnet account";
-                this.address = await this.client.address();
-                const balance = await this.client.balance(this.address, {format: false}).then(this.atomsToAe).catch(() => 0);
-                if (balance <= 5) {
-                    await axios.post(`https://testnet.faucet.aepps.com/account/${this.address}`, {}, {headers: {'content-type': 'application/x-www-form-urlencoded'}})
-                }
+            async fundAccount(publicKey) {
+                const fundingClient = await Universal({
+                    url: this.nodeUrl,
+                    internalUrl: this.nodeUrl,
+                    keypair: {
+                        publicKey: "ak_2qb5NUA8Dt41moZU7X2Tc2462Vb2nwRBrdWTuT2nUyAvdk8dHU",
+                        secretKey: "0f34e79602f94c9300509b71c1fed42a9f47eafeef1e25b6922e9044eb3d8e14f2051cda7937da54a4a568c60b60a69293469059bafd927a7a0d160a2ac208aa"
+                    },
+                    networkId: 'ae_uat',
+                    compilerUrl: "https://compiler.aepps.com"
+                });
+                await fundingClient.spend(100000000000000000, publicKey);
             },
             saveContract() {
                 localStorage.setItem('contract-code', this.contractCode);
@@ -214,16 +220,15 @@
             this.contractCode = this.getContract();
             this.loadingProgress = "initializing sdk client";
             this.client = await Universal({
-                url: "https://sdk-testnet.aepps.com/",
-                internalUrl: "https://sdk-testnet.aepps.com/",
+                url: this.nodeUrl,
+                internalUrl: this.nodeUrl,
                 keypair: keypair,
-                nativeMode: true,
                 networkId: 'ae_uat',
                 compilerUrl: "https://compiler.aepps.com"
             });
 
             try {
-                await this.fundAccount();
+                if ((await this.client.balance(keypair.publicKey).catch(() => 0)) < 50000000000000000) await this.fundAccount(keypair.publicKey);
             } catch (e) {
                 console.error(e);
             }
