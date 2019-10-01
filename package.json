@@ -15,7 +15,6 @@
     "@aeternity/aepp-components": "git+https://github.com/aeternity/aepp-components.git#develop",
     "@aeternity/aepp-sdk": "4.7.0",
     "aeproject-lib": "1.0.0",
-    "bignumber.js": "^8.1.1",
     "core-js": "^2.6.9",
     "prismjs": "^1.16.0",
     "vue": "^2.6.10",

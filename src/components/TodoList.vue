@@ -59,7 +59,6 @@
     import {Universal} from '@aeternity/aepp-sdk/es/ae/universal'
     import * as Crypto from '@aeternity/aepp-sdk/es/utils/crypto'
     import {AeButton, AeInput, AeLabel, AeList, AeListItem, AeCheck} from '@aeternity/aepp-components'
-    import {BigNumber} from 'bignumber.js';
 
     import example from '../../contracts/example.aes';
 
@@ -94,9 +93,6 @@
             }
         },
         methods: {
-            atomsToAe(atoms) {
-                return (new BigNumber(atoms)).dividedBy(new BigNumber('1e18'));
-            },
             getKeypair() {
                 let keypairString = localStorage.getItem('testnet-keypair');
                 let keypair = keypairString ? JSON.parse(keypairString) : Crypto.generateKeyPair();
@@ -105,8 +101,12 @@
             },
             handleContractError(message) {
                 this.showLoading = false;
+
+                const matchFunctionNotFound = message.toString().match(/\.(\w*) is not a function/);
+                console.log(matchFunctionNotFound);
+                if (matchFunctionNotFound) message = matchFunctionNotFound[1] + " function not defined (maybe commented out?)";
+
                 this.allErrors.push(message);
-                //alert(message);
             },
             transformTasksList(list) {
                 return list.map(([id, task]) => {
@@ -120,74 +120,89 @@
                 if (status === "ToBeDeployed") return "";
             },
             async setNextStatus(id, status) {
-                this.allErrors = [];
-                const nextStatus = this.nextStatus(status);
+                try {
+                    this.allErrors = [];
+                    const nextStatus = this.nextStatus(status);
 
-                if (nextStatus !== "") {
-                    this.showLoading = true;
-                    this.loadingProgress = "calling set_task_status on contract";
-                    await this.contractInstance.methods.set_task_status(id, nextStatus).catch(this.handleContractError);
-                    this.loadingProgress = "calling get_tasks on contract";
-                    const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
-                    this.tasks = this.transformTasksList(tasksCall.decodedResult);
-                    this.showLoading = false;
-                    this.loadingProgress = "";
+                    if (nextStatus !== "") {
+                        this.showLoading = true;
+                        this.loadingProgress = "calling set_task_status on contract";
+                        await this.contractInstance.methods.set_task_status(id, nextStatus).catch(this.handleContractError);
+                        this.loadingProgress = "calling get_tasks on contract";
+                        const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
+                        this.tasks = this.transformTasksList(tasksCall.decodedResult);
+                        this.showLoading = false;
+                        this.loadingProgress = "";
+                    }
+                } catch (e) {
+                    this.handleContractError(e)
                 }
             },
             async addTodo() {
-                this.allErrors = [];
+                try {
+                    this.allErrors = [];
 
-                if (this.addTodoText !== "") {
-                    this.showLoading = true;
-                    this.loadingProgress = "calling add_task on contract";
-                    await this.contractInstance.methods.add_task(this.addTodoText).catch(this.handleContractError);
-                    this.loadingProgress = "calling get_tasks on contract";
-                    const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
-                    this.tasks = this.transformTasksList(tasksCall.decodedResult);
-                    this.addTodoText = "";
-                    this.showLoading = false;
-                    this.loadingProgress = "";
+                    if (this.addTodoText !== "") {
+                        this.showLoading = true;
+                        this.loadingProgress = "calling add_task on contract";
+                        await this.contractInstance.methods.add_task(this.addTodoText).catch(this.handleContractError);
+                        this.loadingProgress = "calling get_tasks on contract";
+                        const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
+                        this.tasks = this.transformTasksList(tasksCall.decodedResult);
+                        this.addTodoText = "";
+                        this.showLoading = false;
+                        this.loadingProgress = "";
+                    }
+                } catch (e) {
+                    this.handleContractError(e)
                 }
             },
             async setTaskCompleted(id) {
-                this.allErrors = [];
-                this.showLoading = true;
-                this.loadingProgress = "calling set_task_completed on contract";
-                await this.contractInstance.methods.set_task_completed(id).catch(this.handleContractError);
-                this.loadingProgress = "calling get_tasks on contract";
-                const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
-                this.tasks = this.transformTasksList(tasksCall.decodedResult);
-                this.showLoading = false;
-                this.loadingProgress = "";
+                try {
+                    this.allErrors = [];
+                    this.showLoading = true;
+                    this.loadingProgress = "calling set_task_completed on contract";
+                    await this.contractInstance.methods.set_task_completed(id);
+                    this.loadingProgress = "calling get_tasks on contract";
+                    const tasksCall = await this.contractInstance.methods.get_tasks();
+                    this.tasks = this.transformTasksList(tasksCall.decodedResult);
+                    this.showLoading = false;
+                    this.loadingProgress = "";
+                } catch (e) {
+                    this.handleContractError(e)
+                }
             },
             //its hacky and I know it
             async checkContract() {
-                this.saveContract();
-                this.allErrors = [];
-                this.loadingProgress = "deploying contract to testnet";
-                this.showLoading = true;
+                try {
+                    this.saveContract();
+                    this.allErrors = [];
+                    this.loadingProgress = "deploying contract to testnet";
+                    this.showLoading = true;
 
-                this.contractInstance = await this.client.getContractInstance(this.contractCode).catch(this.handleContractError);
-                await this.contractInstance.deploy().catch(this.handleContractError);
+                    this.contractInstance = await this.client.getContractInstance(this.contractCode);
+                    await this.contractInstance.deploy();
 
-                this.loadingProgress = "calling get_tasks on contract";
-                await this.contractInstance.methods.get_tasks().then(async () => {
-                    this.loadingProgress = "calling add_task on contract";
-                    await this.contractInstance.methods.add_task('Allow contract to add tasks')
-                        .then(async () => {
-                            this.functionAddTaskExists = true;
-                            await this.contractInstance.methods.add_task('Allow contract to complete tasks');
-                            this.loadingProgress = "calling set_task_completed on contract";
-                            await this.contractInstance.methods.set_task_completed(1).catch(this.handleContractError);
+                    this.loadingProgress = "calling get_tasks on contract";
+                    await this.contractInstance.methods.get_tasks().then(async () => {
+                        this.loadingProgress = "calling add_task on contract";
+                        await this.contractInstance.methods.add_task('Allow contract to add tasks')
+                            .then(async () => {
+                                this.functionAddTaskExists = true;
+                                await this.contractInstance.methods.add_task('Allow contract to complete tasks');
+                                this.loadingProgress = "calling set_task_completed on contract";
+                                await this.contractInstance.methods.set_task_completed(1);
 
-                            this.loadingProgress = "calling get_tasks on contract";
-                            const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
-                            this.tasks = this.transformTasksList(tasksCall.decodedResult);
-                        })
-                        .catch(this.handleContractError);
-                }).catch(this.handleContractError);
-                this.showLoading = false;
-                this.loadingProgress = "";
+                                this.loadingProgress = "calling get_tasks on contract";
+                                const tasksCall = await this.contractInstance.methods.get_tasks();
+                                this.tasks = this.transformTasksList(tasksCall.decodedResult);
+                            })
+                    });
+                    this.showLoading = false;
+                    this.loadingProgress = "";
+                } catch (e) {
+                    this.handleContractError(e)
+                }
             },
             async fundAccount(publicKey) {
                 const fundingClient = await Universal({
