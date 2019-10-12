@@ -1,0 +1,14 @@
+contract ToDoList =
+  type state = map(int, task)
+  record task = { name: string, completed: bool }
+
+  entrypoint init() = {}
+
+  stateful entrypoint add_task(task_name : string) =
+    put(state{[Map.size(state)] = {name = task_name,completed = false}})
+
+  stateful entrypoint set_task_completed(seq_id : int) =
+    put(state{[seq_id].completed=true})
+
+  entrypoint get_tasks() : map(int, task) =
+    state
