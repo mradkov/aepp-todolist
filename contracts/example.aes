@@ -1,5 +1,6 @@
 // interface helper for todo list workshop
 // sophia docs: https://github.com/aeternity/protocol/blob/aeternity-node-v4.2.0/contracts/sophia.md
+
 contract ToDoList =
 
   // TODO: define contents of state as record state = { } to hold tasks.
