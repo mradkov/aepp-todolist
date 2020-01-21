@@ -114,7 +114,7 @@
                 });
             },
             nextStatus(status) {
-                if (status === "NoStatus") return "InProgress";
+                if (!status || status === "NoStatus") return "InProgress";
                 if (status === "InProgress") return "ReadyForReview";
                 if (status === "ReadyForReview") return "ToBeDeployed";
                 if (status === "ToBeDeployed") return "Finished";
