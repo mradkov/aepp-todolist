@@ -114,10 +114,10 @@
                 });
             },
             nextStatus(status) {
-                if (!status || status == 'None') return "InProgress";
+                if (status === "NoStatus") return "InProgress";
                 if (status === "InProgress") return "ReadyForReview";
                 if (status === "ReadyForReview") return "ToBeDeployed";
-                if (status === "ToBeDeployed") return "";
+                if (status === "ToBeDeployed") return "Finished";
             },
             async setNextStatus(id, status) {
                 try {
@@ -127,7 +127,7 @@
                     if (nextStatus !== "") {
                         this.showLoading = true;
                         this.loadingProgress = "calling set_task_status on contract";
-                        await this.contractInstance.methods.set_task_status(id, nextStatus).catch(this.handleContractError);
+                        await this.contractInstance.methods.set_next_status(id).catch(this.handleContractError);
                         this.loadingProgress = "calling get_tasks on contract";
                         const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
                         this.tasks = this.transformTasksList(tasksCall.decodedResult);
@@ -213,7 +213,7 @@
                         secretKey: "0f34e79602f94c9300509b71c1fed42a9f47eafeef1e25b6922e9044eb3d8e14f2051cda7937da54a4a568c60b60a69293469059bafd927a7a0d160a2ac208aa"
                     },
                     networkId: 'ae_uat',
-                    compilerUrl: "https://compiler.aepps.com"
+                    compilerUrl: "https://compiler.aeternity.art"
                 });
                 await fundingClient.spend(100000000000000000, publicKey);
             },
@@ -239,7 +239,7 @@
                 internalUrl: this.nodeUrl,
                 keypair: keypair,
                 networkId: 'ae_uat',
-                compilerUrl: "https://compiler.aepps.com"
+                compilerUrl: "https://compiler.aeternity.art"
             });
 
             try {
@@ -348,6 +348,10 @@
   .status-label {
     padding: 5px;
     border-radius: 5px;
+  }
+
+  .status-label.NoStatus {
+    background-color: lightgray;
   }
 
   .status-label.InProgress {
