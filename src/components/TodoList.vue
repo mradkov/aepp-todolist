@@ -126,7 +126,7 @@
 
                     if (nextStatus !== "") {
                         this.showLoading = true;
-                        this.loadingProgress = "calling set_task_status on contract";
+                        this.loadingProgress = "calling set_next_status on contract";
                         await this.contractInstance.methods.set_next_status(id).catch(this.handleContractError);
                         this.loadingProgress = "calling get_tasks on contract";
                         const tasksCall = await this.contractInstance.methods.get_tasks().catch(this.handleContractError);
