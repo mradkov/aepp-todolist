@@ -61,7 +61,7 @@ describe('Todolist Contract', () => {
             id: 0,
             name: 'testing',
             completed: false,
-            status: ""
+            status: "NoStatus"
         }, 'Could not get tasks');
     });
 
@@ -73,23 +73,37 @@ describe('Todolist Contract', () => {
             id: 0,
             name: 'testing',
             completed: true,
-            status: ""
+            status: "Finished"
         }, 'Could not get tasks');
     });
 
     it('TodoList Contract Workflow: Set Todo Item Status', async () => {
         await contract.methods.add_task('testing status');
-        let call = await contract.methods.set_task_status(1, "InProgress");
-        await assert.equal(call.result.returnType, 'ok', 'Could not set task status');
 
-        const callStatic = await contract.methods.get_tasks();
-        let decode = transformTasksList(callStatic.decodedResult);
-        await assert.deepEqual(decode[1], {
-            id: 1,
-            name: 'testing status',
-            completed: false,
-            status: "InProgress"
-        }, 'Could not get tasks');
+        await contract.methods.set_next_status(1);
+        callStatic = await contract.methods.get_tasks();
+        decode = transformTasksList(callStatic.decodedResult);
+        assert.deepEqual(decode[1], { id: 1, name: 'testing status', completed: false, status: "InProgress" });
+
+        await contract.methods.set_next_status(1);
+        callStatic = await contract.methods.get_tasks();
+        decode = transformTasksList(callStatic.decodedResult);
+        assert.deepEqual(decode[1], { id: 1, name: 'testing status', completed: false, status: "ReadyForReview" });
+
+
+        await contract.methods.set_next_status(1);
+        callStatic = await contract.methods.get_tasks();
+        decode = transformTasksList(callStatic.decodedResult);
+        assert.deepEqual(decode[1], { id: 1, name: 'testing status', completed: false, status: "ToBeDeployed" });
+
+
+        await contract.methods.set_next_status(1);
+        callStatic = await contract.methods.get_tasks();
+        decode = transformTasksList(callStatic.decodedResult);
+        assert.deepEqual(decode[1], { id: 1, name: 'testing status', completed: true, status: "Finished" });
+
+        let call = await contract.methods.set_next_status(1).catch(e => e);
+        assert.include(call.decodedError, "ALREADY_COMPLETED")
     });
 
 });
