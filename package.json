@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "aeproject node && aeproject test",
+    "test": "aeproject node && aeproject compiler && aeproject test",
     "deploy:contract": "aeproject deploy",
     "deploy:aepp": "./deploy-gh-pages.sh",
     "build": "webpack -p --env.NODE_ENV=prod",
@@ -13,8 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "@aeternity/aepp-components": "git+https://github.com/aeternity/aepp-components.git#develop",
-    "@aeternity/aepp-sdk": "6.1.2",
-    "aeproject-lib": "1.0.2",
+    "@aeternity/aepp-sdk": "6.1.3",
+    "aeproject-lib": "^2.1.1",
     "core-js": "^2.6.10",
     "prismjs": "^1.16.0",
     "vue": "^2.6.10",
