@@ -1,9 +1,13 @@
+@compiler >= 4.2
+
 contract ToDoList =
+
+  datatype status = NoStatus | InProgress | ReadyForReview | ToBeDeployed | Finished
 
   record task =
     { name : string
     , completed : bool
-    , status : string}
+    , status : status}
 
   type tasks = map(int, task)
 
@@ -16,23 +20,31 @@ contract ToDoList =
 
   stateful entrypoint add_task(task_name : string) =
     let next_seq_id = state.seq_id + 1
-    let new_task_record = { name = task_name, completed = false, status = "" }
+    let new_task_record = { name = task_name, completed = false, status = NoStatus }
     put(state{ tasks[state.seq_id] = new_task_record, seq_id = next_seq_id })
 
   stateful entrypoint set_task_completed(seq_id : int) =
+    put(state{ tasks[seq_id].status = Finished })
     put(state{ tasks[seq_id].completed = true })
 
-  stateful entrypoint set_task_status(seq_id : int, status : string) =
-    require(check_status(status), "INVALID_STATUS")
+  stateful entrypoint set_next_status(seq_id : int) =
     require(!state.tasks[seq_id].completed, "ALREADY_COMPLETED")
-    put(state{ tasks[seq_id].status = status })
+    let next_status = next_status(state.tasks[seq_id].status)
+    put(state{ tasks[seq_id].status = next_status })
+    put(state{ tasks[seq_id].completed = is_completed(next_status) })
 
   entrypoint get_tasks() : tasks =
     state.tasks
 
-  entrypoint check_status(status :string) : bool =
-    switch(status)
-      "InProgress" => true
-      "ReadyForReview" => true
-      "ToBeDeployed" => true
-      _ => false
+  function
+    is_completed : status => bool
+    is_completed(Finished) = true
+    is_completed(_) = false
+
+  function
+    next_status : status => status
+    next_status(NoStatus) = InProgress
+    next_status(InProgress) = ReadyForReview
+    next_status(ReadyForReview) = ToBeDeployed
+    next_status(ToBeDeployed) = Finished
+    next_status(Finished) = abort("ALREADY_COMPLETED")
